@@ -15,7 +15,7 @@ GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/apple-oss-distributions'
 
 WORK_DIR = os.environ.get('PWD')
 BUILD_DIR = os.environ.get('BUILD_DIR', f'{WORK_DIR}/build')
-FAKEROOT_DIR = os.environ.get('BUILD_DIR', f'{WORK_DIR}/fakeroot')
+FAKEROOT_DIR = os.environ.get('FAKEROOT_DIR', f'{WORK_DIR}/fakeroot')
 
 # upstream gits: https://raw.githubusercontent.com/apple-oss-distributions/distribution-macOS/macos-131/release.json
 #MACOS_VERSION = 'macos-131'

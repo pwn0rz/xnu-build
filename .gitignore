@@ -6,3 +6,4 @@ fakeroot
 libdispatch
 libplatform
 xnu
+xnu-codeql
