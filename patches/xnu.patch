@@ -1,0 +1,63 @@
+diff --git a/libkern/kxld/tests/loadtest.py b/libkern/kxld/tests/loadtest.py
+index ce7a95d9..4e82af4d 100755
+--- a/libkern/kxld/tests/loadtest.py
++++ b/libkern/kxld/tests/loadtest.py
+@@ -26,7 +26,7 @@
+ # @APPLE_OSREFERENCE_LICENSE_HEADER_END@
+ ##
+ 
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ 
+ import sys
+ from subprocess import call, Popen, PIPE
+diff --git a/san/tools/generate_dynamic_blacklist.py b/san/tools/generate_dynamic_blacklist.py
+index 2b155c9a..20d963c2 100755
+--- a/san/tools/generate_dynamic_blacklist.py
++++ b/san/tools/generate_dynamic_blacklist.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ 
+ from __future__ import absolute_import
+ import sys
+diff --git a/tools/lldbmacros/core/syntax_checker.py b/tools/lldbmacros/core/syntax_checker.py
+index 3ebc2951..05aba3b4 100755
+--- a/tools/lldbmacros/core/syntax_checker.py
++++ b/tools/lldbmacros/core/syntax_checker.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ from __future__ import absolute_import, print_function
+ 
+ 
+diff --git a/tools/lldbmacros/xnudefines.py b/tools/lldbmacros/xnudefines.py
+index 5a489071..2baaf4e6 100755
+--- a/tools/lldbmacros/xnudefines.py
++++ b/tools/lldbmacros/xnudefines.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ 
+ """ This file holds all static values that debugging macros need. These are typically object type strings, #defines in C etc.
+     The objective is to provide a single place to be the bridge between C code in xnu and the python macros used by lldb.
+diff --git a/tools/symbolify.py b/tools/symbolify.py
+index 6ef18146..2535b86b 100755
+--- a/tools/symbolify.py
++++ b/tools/symbolify.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ from subprocess import Popen, PIPE, call
+ import re
+ import sys
+diff --git a/tools/trace/parse_ipc_trace.py b/tools/trace/parse_ipc_trace.py
+index 0ffa386c..6e46a0d1 100755
+--- a/tools/trace/parse_ipc_trace.py
++++ b/tools/trace/parse_ipc_trace.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ # machtrace_parse.py
+ # Parse Mach IPC kmsg data trace from XNU
+ #
