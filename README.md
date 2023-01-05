@@ -3,7 +3,7 @@
 All files will be written into `fakeroot` instead of system path
 
 ```shell
-# compile xnu kernel, 
+# compile xnu kernel
 ./x.py
 
 # compile codeql database
