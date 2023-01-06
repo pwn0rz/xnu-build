@@ -7,3 +7,4 @@ libdispatch
 libplatform
 xnu
 xnu-codeql
+xnu-queries
