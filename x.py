@@ -108,14 +108,14 @@ sed(f'{WORK_DIR}/libdispatch/xcodeconfig/libfirehose_kernel.xcconfig', '^HEADER_
 sed(f'{WORK_DIR}/xnu/makedefs/MakeInc.def', '^LDFLAGS_KERNEL_SDK\s=', 'SDKROOT', 'FAKEROOT')
 sed(f'{WORK_DIR}/xnu/makedefs/MakeInc.def', '^INCFLAGS_SDK\s=', 'SDKROOT', 'FAKEROOT')
 
-OBJROOT = f'{BUILD_DIR}/obj'
-SYMROOT = f'{BUILD_DIR}/sym'
 DSTROOT = f'{FAKEROOT_DIR}'
 os.environ['FAKEROOT'] = FAKEROOT_DIR
 
 # dtrace
 if not pathlib.Path(f'{FAKEROOT_DIR}/usr/local/bin/ctfmerge').exists():
     SRCROOT = f'{WORK_DIR}/dtrace'
+    OBJROOT = f'{BUILD_DIR}/dtrace.obj'
+    SYMROOT = f'{BUILD_DIR}/dtrace.sym'
     os.chdir(f'{SRCROOT}')
     shell(f'xcodebuild install -target ctfconvert -target ctfdump -target ctfmerge ARCHS="arm64" OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT}')
     os.chdir(f'{WORK_DIR}')
@@ -126,6 +126,8 @@ else:
 if not pathlib.Path(f'{FAKEROOT_DIR}{KERNEL_FRAMEWORK_ROOT}/Headers/AvailabilityVersions.h').exists():
     print('building AvailabilityVersions...')
     SRCROOT = f'{WORK_DIR}/AvailabilityVersions'
+    OBJROOT = f'{BUILD_DIR}/AvailabilityVersions.obj'
+    SYMROOT = f'{BUILD_DIR}/AvailabilityVersions.sym'
     os.chdir(SRCROOT)
     shell(f'make install OBJROOT=${OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT}')
     os.chdir(f'{WORK_DIR}')
@@ -136,6 +138,8 @@ else:
 if not pathlib.Path(f'{FAKEROOT_DIR}{KERNEL_FRAMEWORK_ROOT}/PrivateHeaders').exists():
     print('install XNU headers...')
     SRCROOT = f'{WORK_DIR}/xnu'
+    OBJROOT = f'{BUILD_DIR}/xnu-hdrs.obj'
+    SYMROOT = f'{BUILD_DIR}/xnu-hdrs.sym'
     os.chdir(SRCROOT)
     shell(f'make installhdrs SDKROOT=macosx TARGET_CONFIGS="RELEASE ARM64 VMAPPLE" OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT}')
     os.chdir(f'{WORK_DIR}')
@@ -146,6 +150,8 @@ else:
 if not pathlib.Path(f'{FAKEROOT_DIR}/usr/include/os/proc.h').exists():
     print('install libsyscall headers...')
     SRCROOT = f'{WORK_DIR}/xnu/libsyscall'
+    OBJROOT = f'{BUILD_DIR}/libsyscall.obj'
+    SYMROOT = f'{BUILD_DIR}/libsyscall.sym'
     os.chdir(f'{SRCROOT}')
     shell(f'xcodebuild installhdrs -sdk macosx OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT} FAKEROOT={FAKEROOT_DIR}')
     os.chdir(f'{WORK_DIR}')
@@ -164,6 +170,8 @@ os.chdir(f'{WORK_DIR}')
 if not pathlib.Path(f'{FAKEROOT_DIR}/usr/local/lib/kernel/libfirehose_kernel.a').exists():
     print('build libfirehose_kernel...')
     SRCROOT = f'{WORK_DIR}/libdispatch'
+    OBJROOT = f'{BUILD_DIR}/libfirehose_kernel.obj'
+    SYMROOT = f'{BUILD_DIR}/libfirehose_kernel.sym'
     os.chdir(f'{SRCROOT}')
     shell(f'xcodebuild install -target libfirehose_kernel -sdk macosx ARCHS="arm64e" VALID_ARCHS="arm64e" OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT} FAKEROOT={FAKEROOT_DIR}')
     os.chdir(f'{WORK_DIR}')
@@ -177,12 +185,16 @@ else:
 # xnu kernel
 print('build xnu kernel...')
 SRCROOT = f'{WORK_DIR}/xnu'
+OBJROOT = f'{BUILD_DIR}/xnu.obj'
+SYMROOT = f'{BUILD_DIR}/xnu.sym'
 os.chdir(f'{SRCROOT}')
 shell(f'make install SDKROOT=macosx TARGET_CONFIGS="RELEASE ARM64 VMAPPLE" LOGCOLORS=y BUILD_WERROR=0 BUILD_LTO=0 SRCROOT={SRCROOT} OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT} FAKEROOT={FAKEROOT_DIR} KDKROOT={KDKROOT}')
 
 # this would make codeql/clangd/ccls happy
 print('build json compilation database...')
-shell(f'make SDKROOT=macosx TARGET_CONFIGS="RELEASE ARM64 VMAPPLE" LOGCOLORS=y BUILD_WERROR=0 BUILD_LTO=0 BUILD_JSON_COMPILATION_DATABASE=1 SRCROOT={SRCROOT} OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT} FAKEROOT={FAKEROOT_DIR} KDKROOT={KDKROOT}')
+OBJROOT = f'{BUILD_DIR}/xnu-compiledb.obj'
+SYMROOT = f'{BUILD_DIR}/xnu-compiledb.sym'
+os.system(f'make SDKROOT=macosx TARGET_CONFIGS="RELEASE ARM64 VMAPPLE" LOGCOLORS=y BUILD_WERROR=0 BUILD_LTO=0 BUILD_JSON_COMPILATION_DATABASE=1 SRCROOT={SRCROOT} OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT} FAKEROOT={FAKEROOT_DIR} KDKROOT={KDKROOT}')
 JSON_COMPILE_DB = exec_cmd(['find', OBJROOT, '-name', 'compile_commands.json'], WORK_DIR)
 print(f'copy json compilation database into {SRCROOT}...')
 shell(f'cp -f {JSON_COMPILE_DB} {SRCROOT}')
