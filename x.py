@@ -96,6 +96,7 @@ sed(f'{WORK_DIR}/dtrace/config/base.xcconfig', '^CODE_SIGN_IDENTITY.*', '.*', ''
 
 # xnu headers patch
 sed(f'{WORK_DIR}/xnu/bsd/sys/make_symbol_aliasing.sh', '^AVAILABILITY_PL=.*', r'\$\{.*\}', '${FAKEROOT}')
+exec_cmd(["patch", "-p1", "-i", "../patches/xnu.patch"], os.path.join(WORK_DIR, "xnu"))
 
 # libsyscall patch
 sed(f'{WORK_DIR}/xnu/libsyscall/Libsyscall.xcconfig', '#include.*BSD.xcconfig.*', '.*', '')
