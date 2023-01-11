@@ -90,9 +90,6 @@ if not pathlib.Path(KDKROOT).exists():
 KERNEL_FRAMEWORK_ROOT = '/System/Library/Frameworks/Kernel.framework/Versions/A'
 
 # apply patches
-# dtrace patch
-sed(f'{WORK_DIR}/dtrace/config/base.xcconfig', '^SDKROOT = macosx.internal$', 'macosx.internal', 'macosx')
-sed(f'{WORK_DIR}/dtrace/config/base.xcconfig', '^CODE_SIGN_IDENTITY.*', '.*', '')
 
 # xnu headers patch
 sed(f'{WORK_DIR}/xnu/bsd/sys/make_symbol_aliasing.sh', '^AVAILABILITY_PL=.*', r'\$\{.*\}', '${FAKEROOT}')
@@ -117,7 +114,7 @@ if not pathlib.Path(f'{FAKEROOT_DIR}/usr/local/bin/ctfmerge').exists():
     OBJROOT = f'{BUILD_DIR}/dtrace.obj'
     SYMROOT = f'{BUILD_DIR}/dtrace.sym'
     os.chdir(f'{SRCROOT}')
-    shell(f'xcodebuild install -target ctfconvert -target ctfdump -target ctfmerge ARCHS="arm64" OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT}')
+    shell(f'xcodebuild install -sdk macosx -target ctfconvert -target ctfdump -target ctfmerge ARCHS="arm64" CODE_SIGN_IDENTITY="-" OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT}')
     os.chdir(f'{WORK_DIR}')
 else:
     print('skip building dtrace')
@@ -162,8 +159,8 @@ else:
 print('install libplatform private headers...')
 SRCROOT = f'{WORK_DIR}/libplatform'
 os.chdir(f'{SRCROOT}')
-shell(f'ditto {SRCROOT}/include ${DSTROOT}/usr/local/include')
-shell(f'ditto {SRCROOT}/private ${DSTROOT}/usr/local/include')
+shell(f'ditto {SRCROOT}/include {DSTROOT}/usr/local/include')
+shell(f'ditto {SRCROOT}/private {DSTROOT}/usr/local/include')
 os.chdir(f'{WORK_DIR}')
 
 # libfirehose_kernel
@@ -182,19 +179,26 @@ if not pathlib.Path(f'{FAKEROOT_DIR}/usr/local/lib/kernel/libfirehose_kernel.a')
 else:
     print('skip build libfirehose_kernel...')
 
-# xnu kernel
-print('build xnu kernel...')
-SRCROOT = f'{WORK_DIR}/xnu'
-OBJROOT = f'{BUILD_DIR}/xnu.obj'
-SYMROOT = f'{BUILD_DIR}/xnu.sym'
-os.chdir(f'{SRCROOT}')
-shell(f'make install SDKROOT=macosx TARGET_CONFIGS="RELEASE ARM64 VMAPPLE" LOGCOLORS=y BUILD_WERROR=0 BUILD_LTO=0 SRCROOT={SRCROOT} OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT} FAKEROOT={FAKEROOT_DIR} KDKROOT={KDKROOT}')
-
-# this would make codeql/clangd/ccls happy
-print('build json compilation database...')
-OBJROOT = f'{BUILD_DIR}/xnu-compiledb.obj'
-SYMROOT = f'{BUILD_DIR}/xnu-compiledb.sym'
-os.system(f'make SDKROOT=macosx TARGET_CONFIGS="RELEASE ARM64 VMAPPLE" LOGCOLORS=y BUILD_WERROR=0 BUILD_LTO=0 BUILD_JSON_COMPILATION_DATABASE=1 SRCROOT={SRCROOT} OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT} FAKEROOT={FAKEROOT_DIR} KDKROOT={KDKROOT}')
-JSON_COMPILE_DB = exec_cmd(['find', OBJROOT, '-name', 'compile_commands.json'], WORK_DIR)
-print(f'copy json compilation database into {SRCROOT}...')
-shell(f'cp -f {JSON_COMPILE_DB} {SRCROOT}')
+if os.getenv('JSONDB') == '1':
+    # build a json compilation database, this would make clangd/ccls happy
+    print('build json compilation database...')
+    SRCROOT = f'{WORK_DIR}/xnu'
+    OBJROOT = f'{BUILD_DIR}/xnu-compiledb.obj'
+    SYMROOT = f'{BUILD_DIR}/xnu-compiledb.sym'
+    # start with a clean build
+    os.system(f'rm -rf {OBJROOT}')
+    os.system(f'rm -rf {SYMROOT}')
+    os.chdir(f'{SRCROOT}')
+    # error can happen but database does work
+    os.system(f'make SDKROOT=macosx TARGET_CONFIGS="RELEASE ARM64 VMAPPLE" LOGCOLORS=y BUILD_WERROR=0 BUILD_LTO=0 BUILD_JSON_COMPILATION_DATABASE=1 SRCROOT={SRCROOT} OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT} FAKEROOT={FAKEROOT_DIR} KDKROOT={KDKROOT}')
+    JSON_COMPILE_DB = exec_cmd(['find', OBJROOT, '-name', 'compile_commands.json'], WORK_DIR)
+    print(f'copy json compilation database into {SRCROOT}...')
+    shell(f'cp -f {JSON_COMPILE_DB} {SRCROOT}')
+else:
+    # xnu kernel
+    print('build xnu kernel...')
+    SRCROOT = f'{WORK_DIR}/xnu'
+    OBJROOT = f'{BUILD_DIR}/xnu.obj'
+    SYMROOT = f'{BUILD_DIR}/xnu.sym'
+    os.chdir(f'{SRCROOT}')
+    shell(f'make install SDKROOT=macosx TARGET_CONFIGS="RELEASE ARM64 VMAPPLE" LOGCOLORS=y BUILD_WERROR=0 BUILD_LTO=0 SRCROOT={SRCROOT} OBJROOT={OBJROOT} SYMROOT={SYMROOT} DSTROOT={DSTROOT} FAKEROOT={FAKEROOT_DIR} KDKROOT={KDKROOT}')
